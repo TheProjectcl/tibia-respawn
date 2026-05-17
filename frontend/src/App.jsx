@@ -300,7 +300,7 @@ export default function App() {
                         color: r.maintenance ? '#777' : isHolder ? '#4a90d9' : !c ? '#4caf7a' : '#e05252',
                         border: `1px solid ${r.maintenance ? '#3a3a3a' : isHolder ? '#1a3a6a' : !c ? '#1d5535' : '#5a1a1a'}`
                       }}>
-                        {r.maintenance ? (warMode ? '⚔ Guerra' : 'Mantenimiento') : isHolder ? 'Tu respawn' : !c ? 'Libre' : 'Ocupado'}
+                        {r.maintenance ? (warMode ? '⚔ Guerra' : '') : isHolder ? 'Tu respawn' : !c ? 'Libre' : 'Ocupado'}
                       </span>
                     </div>
 
@@ -399,7 +399,7 @@ export default function App() {
                       <td style={{ padding: '6px 8px' }}>
                         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                           {r.claim && <button onClick={() => action(`/admin/respawns/${r.id}/force-release`, 'POST', {}, '⚡ Liberado forzosamente')} style={{ background: '#3a0d0d', border: '1px solid #c0392b88', color: '#e05252', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>⚡ Forzar</button>}
-                          <button onClick={async () => { await api(`/admin/respawns/${r.id}`, { method: 'PUT', body: { maintenance: !r.maintenance } }); loadRespawns() }} style={{ background: '#1a1a2a', border: '1px solid #3a3a4a', color: '#aaa', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>{r.maintenance ? '✓ Reactivar' : '🔧 Mant.'}</button>
+                          <button onClick={async () => { await api(`/admin/respawns/${r.id}`, { method: 'PUT', body: { maintenance: !r.maintenance } }); loadRespawns() }} style={{ background: '#1a1a2a', border: '1px solid #3a3a4a', color: '#aaa', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>{r.maintenance ? '✓ Reactivar' : '⏸ Pausar'}</button>
                           <button onClick={async () => { try { await api(`/admin/respawns/${r.id}`, { method: 'DELETE' }); loadRespawns(); toast('🗑 Eliminado') } catch (e) { toast(e.message, true) } }} style={{ background: '#2a2a2a', border: '1px solid #3a3a4a', color: '#666', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>🗑</button>
                         </div>
                       </td>

@@ -291,14 +291,20 @@ app.get('/admin/logs', auth, adminOnly, async (req, res) => {
   `);
   res.json(r.rows);
 });
-
-app.post('/admin/respawns/:id/force-release', auth, adminOnly, async (req, res) => {
-  const rid = parseInt(req.params.id);
-  const resp = await pool.query('SELECT name FROM respawns WHERE id=$1', [rid]);
-  await pool.query('DELETE FROM claims WHERE respawn_id=$1', [rid]);
-  await logAction(req.user.id, rid, 'force_release', 0);
-  discordNotify(`⚡ **Admin** forzó la liberación de **${resp.rows[0]?.name}**`);
-  res.json({ ok: true });
+app.put('/admin/users/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const { password, role } = req.body;
+    if (password && password.trim() !== '') {
+      const hash = await bcrypt.hash(password.trim(), 10);
+      await pool.query('UPDATE users SET password_hash=$1 WHERE id=$2', [hash, req.params.id]);
+    }
+    if (role) {
+      await pool.query('UPDATE users SET role=$1 WHERE id=$2', [role, req.params.id]);
+    }
+    res.json({ ok: true });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ─── CRON: expirar claims cada 10 segundos ───────────────────────────────────
