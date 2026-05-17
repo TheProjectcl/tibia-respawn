@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 
-
 const API = ''
 
 function fmt(sec) {
@@ -56,7 +55,7 @@ export default function App() {
   const [newUser, setNewUser] = useState({ username: '', password: '', role: 'member' })
   const [editingUser, setEditingUser] = useState(null)
   const [editUserForm, setEditUserForm] = useState({ password: '', role: 'member' })
-  const [guildName, setGuildName] = useState('Dark Brotherhood')
+  const [guildName, setGuildName] = useState('BrosForever')
   const [editingGuildName, setEditingGuildName] = useState(false)
   const [tempGuildName, setTempGuildName] = useState('')
   const [warMode, setWarMode] = useState(false)
@@ -89,7 +88,6 @@ export default function App() {
     api('/auth/me').then(u => {
       setUser(u)
       loadRespawns()
-      // Cargar nombre de guild guardado
       const saved = localStorage.getItem('guildName')
       if (saved) setGuildName(saved)
       const savedWar = localStorage.getItem('warMode')
@@ -137,7 +135,6 @@ export default function App() {
 
   useEffect(() => { if (tab === 'admin' && user?.role === 'admin') loadAdminData() }, [tab, user, loadAdminData])
 
-  // Guardar nombre de guild
   const saveGuildName = () => {
     if (!tempGuildName.trim()) return
     setGuildName(tempGuildName.trim())
@@ -146,11 +143,9 @@ export default function App() {
     toast('✓ Nombre de guild actualizado')
   }
 
-  // Modo Guerra — pausa/reanuda todos los respawns
   const toggleWarMode = async () => {
     const newMode = !warMode
     try {
-      // Poner todos los respawns en mantenimiento o sacarlos
       await Promise.all(respawns.map(r =>
         api(`/admin/respawns/${r.id}`, { method: 'PUT', body: { maintenance: newMode } })
       ))
@@ -159,14 +154,13 @@ export default function App() {
       setConfirmWar(false)
       loadRespawns()
       if (newMode) {
-        toast('⚔ ¡MODO GUERRA ACTIVADO! Todos los respawns pausados')
+        toast('⚔ MODO GUERRA ACTIVADO — Todos los respawns pausados')
       } else {
         toast('✅ Modo Guerra desactivado — respawns reactivados')
       }
     } catch (e) { toast(e.message, true) }
   }
 
-  // Editar usuario
   const saveEditUser = async () => {
     if (!editingUser) return
     try {
@@ -183,30 +177,28 @@ export default function App() {
     } catch (e) { toast(e.message, true) }
   }
 
-  // Eliminar usuario
-const deleteUser = async (id, username) => {
-  try {
-    await api(`/admin/users/${id}`, { method: 'DELETE' })
-    loadAdminData()
-    toast(`⏸ ${username} desactivado`)
-  } catch (e) { toast(e.message, true) }
-}
+  const deactivateUser = async (id, username) => {
+    try {
+      await api(`/admin/users/${id}`, { method: 'DELETE' })
+      loadAdminData()
+      toast(`⏸ ${username} desactivado`)
+    } catch (e) { toast(e.message, true) }
+  }
 
-const reactivateUser = async (id, username) => {
-  try {
-    await api(`/admin/users/${id}/reactivate`, { method: 'PUT' })
-    loadAdminData()
-    toast(`✓ ${username} reactivado`)
-  } catch (e) { toast(e.message, true) }
-}
+  const reactivateUser = async (id, username) => {
+    try {
+      await api(`/admin/users/${id}/reactivate`, { method: 'PUT' })
+      loadAdminData()
+      toast(`✓ ${username} reactivado`)
+    } catch (e) { toast(e.message, true) }
+  }
 
-const permanentDeleteUser = async (id, username) => {
-  try {
-    await api(`/admin/users/${id}?permanent=true`, { method: 'DELETE' })
-    loadAdminData()
-    toast(`🗑 ${username} eliminado permanentemente`)
-  } catch (e) { toast(e.message, true) }
-}
+  const permanentDeleteUser = async (id, username) => {
+    try {
+      await api(`/admin/users/${id}?permanent=true`, { method: 'DELETE' })
+      loadAdminData()
+      toast(`🗑 ${username} eliminado`)
+    } catch (e) { toast(e.message, true) }
   }
 
   const myActiveRespawnId = respawns.find(r =>
@@ -243,14 +235,12 @@ const permanentDeleteUser = async (id, username) => {
         @media (max-width: 600px) { .cards-grid { grid-template-columns: 1fr !important; } .btn-full { width: 100%; } }
       `}</style>
 
-      {/* MODO GUERRA BANNER */}
       {warMode && (
         <div style={{ background: '#3a0d0d', borderBottom: '2px solid #c0392b', padding: '8px 16px', textAlign: 'center', fontFamily: "'Cinzel',serif", color: '#e05252', fontSize: 14, animation: 'warPulse 2s infinite' }}>
           ⚔ MODO GUERRA ACTIVO — Todos los respawns pausados ⚔
         </div>
       )}
 
-      {/* HEADER */}
       <div style={{ background: '#12121a', borderBottom: '1px solid #2a2a3a', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ color: '#c9a84c', fontSize: 20 }}>⚔</span>
@@ -262,7 +252,7 @@ const permanentDeleteUser = async (id, username) => {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {user.role === 'admin' && (
             <button onClick={() => { if (!confirmWar) { setConfirmWar(true); setTimeout(() => setConfirmWar(false), 4000) } else { toggleWarMode() } }}
-              style={{ background: warMode ? '#c0392b33' : confirmWar ? '#c0392b44' : '#2a2a3a', border: `1px solid ${warMode ? '#c0392b' : confirmWar ? '#e05252' : '#3a3a4a'}`, color: warMode ? '#ff6b6b' : confirmWar ? '#ff6b6b' : '#aaa', padding: '5px 12px', borderRadius: 5, cursor: 'pointer', fontSize: 12, fontFamily: warMode || confirmWar ? "'Cinzel',serif" : 'sans-serif', transition: 'all .2s' }}>
+              style={{ background: warMode ? '#c0392b33' : confirmWar ? '#c0392b44' : '#2a2a3a', border: `1px solid ${warMode ? '#c0392b' : confirmWar ? '#e05252' : '#3a3a4a'}`, color: warMode ? '#ff6b6b' : confirmWar ? '#ff6b6b' : '#aaa', padding: '5px 12px', borderRadius: 5, cursor: 'pointer', fontSize: 12, transition: 'all .2s' }}>
               {warMode ? '✅ Desactivar Guerra' : confirmWar ? '⚔ ¿Confirmar?' : '⚔ Modo Guerra'}
             </button>
           )}
@@ -271,7 +261,6 @@ const permanentDeleteUser = async (id, username) => {
       </div>
 
       <div style={{ padding: 12 }}>
-        {/* BANNER next */}
         {bannerRespawns.map(r => (
           <div key={r.id} style={{ background: '#1a1a24', border: '1px solid #c9a84c44', borderLeft: '3px solid #c9a84c', borderRadius: 6, padding: '10px 14px', marginBottom: 10, fontSize: 13, display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ color: '#c9a84c' }}>⚔</span>
@@ -279,7 +268,6 @@ const permanentDeleteUser = async (id, username) => {
           </div>
         ))}
 
-        {/* TABS */}
         <div style={{ display: 'flex', gap: 4, marginBottom: 12 }}>
           {['respawns', ...(user.role === 'admin' ? ['admin'] : [])].map(t => (
             <button key={t} onClick={() => setTab(t)} style={{
@@ -294,7 +282,6 @@ const permanentDeleteUser = async (id, username) => {
           ))}
         </div>
 
-        {/* TAB RESPAWNS */}
         {tab === 'respawns' && (
           <>
             <div style={{ fontFamily: "'Cinzel',serif", color: '#c9a84c', fontSize: 12, letterSpacing: 1, marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #2a2a3a' }}>RESPAWNS</div>
@@ -317,11 +304,15 @@ const permanentDeleteUser = async (id, username) => {
                         color: r.maintenance ? '#777' : isHolder ? '#4a90d9' : !c ? '#4caf7a' : '#e05252',
                         border: `1px solid ${r.maintenance ? '#3a3a3a' : isHolder ? '#1a3a6a' : !c ? '#1d5535' : '#5a1a1a'}`
                       }}>
-                        {r.maintenance ? (warMode ? '⚔ Guerra' : '') : isHolder ? 'Tu respawn' : !c ? 'Libre' : 'Ocupado'}
+                        {r.maintenance ? (warMode ? '⚔ Guerra' : 'Pausado') : isHolder ? 'Tu respawn' : !c ? 'Libre' : 'Ocupado'}
                       </span>
                     </div>
 
-                    {r.maintenance && <div style={{ fontSize: 12, color: '#555', textAlign: 'center', padding: '12px 0' }}>{warMode ? 'Pausado por Modo Guerra' : 'No disponible temporalmente'}</div>}
+                    {r.maintenance && (
+                      <div style={{ fontSize: 12, color: '#555', textAlign: 'center', padding: '12px 0' }}>
+                        {warMode ? 'Pausado por Modo Guerra' : 'Pausado temporalmente'}
+                      </div>
+                    )}
 
                     {!r.maintenance && !c && (
                       <>
@@ -342,8 +333,11 @@ const permanentDeleteUser = async (id, username) => {
                         </div>
                         <div style={{ fontFamily: 'monospace', fontSize: 20, fontWeight: 700, color: urgent ? '#e05252' : '#e8e4d8', letterSpacing: 2, margin: '4px 0 8px' }}>{fmt(sec)}</div>
                         <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>
-                          {c.next_name ? <>→ next: <span style={{ color: '#c9a84c' }}>{c.next_name}</span>{isNext && <span style={{ color: '#4caf7a', marginLeft: 6 }}>✓ eres vos</span>}</> : <span style={{ color: '#555' }}>— sin next</span>}
+                          {c.next_name
+                            ? <>→ next: <span style={{ color: '#c9a84c' }}>{c.next_name}</span>{isNext && <span style={{ color: '#4caf7a', marginLeft: 6 }}>✓ eres vos</span>}</>
+                            : <span style={{ color: '#555' }}>— sin next</span>}
                         </div>
+
                         {isHolder && (
                           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                             {!confirm[r.id]
@@ -353,22 +347,26 @@ const permanentDeleteUser = async (id, username) => {
                                 <button onClick={() => setConfirm(p => ({ ...p, [r.id]: false }))} style={{ background: '#2a2a3a', border: '1px solid #3a3a4a', color: '#aaa', padding: '6px 10px', borderRadius: 5, cursor: 'pointer', fontSize: 12 }}>✕</button>
                               </>
                             }
-{!c.next_name && sec <= 300 && (
-  <button onClick={() => action(`/respawns/${r.id}/extend`, 'POST', {}, `⏱ Extendiste ${r.name} a 3h`)} style={{ background: '#c9a84c22', border: '1px solid #c9a84c88', color: '#c9a84c', padding: '6px 12px', borderRadius: 5, cursor: 'pointer', fontSize: 12 }}>Extender 3h</button>
-)}
-{!c.next_name && sec > 300 && (
-  <div style={{ fontSize: 11, color: '#555', marginTop: 4 }}>Extender disponible con menos de 5 min</div>
-)}                          </div>
+                            {!c.next_name && sec <= 300 && (
+                              <button onClick={() => action(`/respawns/${r.id}/extend`, 'POST', {}, `⏱ Extendiste ${r.name} a 3h`)} style={{ background: '#c9a84c22', border: '1px solid #c9a84c88', color: '#c9a84c', padding: '6px 12px', borderRadius: 5, cursor: 'pointer', fontSize: 12 }}>Extender 3h</button>
+                            )}
+                            {!c.next_name && sec > 300 && (
+                              <div style={{ fontSize: 11, color: '#555', marginTop: 4 }}>Extender disponible con menos de 5 min</div>
+                            )}
+                          </div>
                         )}
+
                         {isNext && (
                           <button onClick={() => action(`/respawns/${r.id}/leave-queue`, 'POST', {}, `↩ Saliste de la cola`)} style={{ background: '#c0392b22', border: '1px solid #c0392b88', color: '#e05252', padding: '6px 12px', borderRadius: 5, cursor: 'pointer', fontSize: 12 }}>Salir de la cola</button>
                         )}
+
                         {!isHolder && !isNext && !c.next_name && !hasActive && (
                           <>
                             <HoursBtns id={r.id} value={getH(r.id)} onChange={setH} />
                             <button onClick={() => action(`/respawns/${r.id}/join-queue`, 'POST', { hours: getH(r.id) }, `📋 Estás en cola para ${r.name}`)} style={{ background: '#1a3a6a22', border: '1px solid #4a90d966', color: '#4a90d9', padding: '6px 12px', borderRadius: 5, cursor: 'pointer', fontSize: 12, width: '100%' }}>📋 Anotarme como next</button>
                           </>
                         )}
+
                         {!isHolder && !isNext && c.next_name && (
                           <div style={{ fontSize: 11, color: '#555', marginTop: 4 }}>Cola completa</div>
                         )}
@@ -381,11 +379,9 @@ const permanentDeleteUser = async (id, username) => {
           </>
         )}
 
-        {/* TAB ADMIN */}
         {tab === 'admin' && user.role === 'admin' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-            {/* Nombre de Guild */}
             <div style={{ background: '#12121a', border: '1px solid #2a2a3a', borderRadius: 8, padding: 14 }}>
               <div style={{ fontFamily: "'Cinzel',serif", color: '#c9a84c', fontSize: 12, letterSpacing: 1, marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #2a2a3a' }}>NOMBRE DE LA GUILD</div>
               {!editingGuildName ? (
@@ -403,7 +399,6 @@ const permanentDeleteUser = async (id, username) => {
               )}
             </div>
 
-            {/* Respawns CRUD */}
             <div style={{ background: '#12121a', border: '1px solid #2a2a3a', borderRadius: 8, padding: 14 }}>
               <div style={{ fontFamily: "'Cinzel',serif", color: '#c9a84c', fontSize: 12, letterSpacing: 1, marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #2a2a3a' }}>GESTIÓN DE RESPAWNS</div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -412,7 +407,10 @@ const permanentDeleteUser = async (id, username) => {
                   {respawns.map(r => (
                     <tr key={r.id}>
                       <td style={{ padding: '6px 8px', color: '#c9a84c', fontFamily: "'Cinzel',serif" }}>{r.name}</td>
-                      <td style={{ padding: '6px 8px' }}>{r.claim ? <span style={{ color: '#e05252', fontSize: 11 }}>🗡 {r.claim.holder_name}</span> : <span style={{ color: '#4caf7a', fontSize: 11 }}>Libre</span>} {r.maintenance && <span style={{ color: '#777', marginLeft: 4, fontSize: 11 }}>[Mant.]</span>}</td>
+                      <td style={{ padding: '6px 8px' }}>
+                        {r.claim ? <span style={{ color: '#e05252', fontSize: 11 }}>🗡 {r.claim.holder_name}</span> : <span style={{ color: '#4caf7a', fontSize: 11 }}>Libre</span>}
+                        {r.maintenance && <span style={{ color: '#777', marginLeft: 4, fontSize: 11 }}>[Pausado]</span>}
+                      </td>
                       <td style={{ padding: '6px 8px' }}>
                         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                           {r.claim && <button onClick={() => action(`/admin/respawns/${r.id}/force-release`, 'POST', {}, '⚡ Liberado forzosamente')} style={{ background: '#3a0d0d', border: '1px solid #c0392b88', color: '#e05252', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>⚡ Forzar</button>}
@@ -430,17 +428,15 @@ const permanentDeleteUser = async (id, username) => {
               </div>
             </div>
 
-            {/* Usuarios */}
             <div style={{ background: '#12121a', border: '1px solid #2a2a3a', borderRadius: 8, padding: 14 }}>
               <div style={{ fontFamily: "'Cinzel',serif", color: '#c9a84c', fontSize: 12, letterSpacing: 1, marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #2a2a3a' }}>PERSONAJES</div>
 
-              {/* Modal editar usuario */}
               {editingUser && (
                 <div style={{ background: '#1a1a24', border: '1px solid #c9a84c44', borderRadius: 8, padding: 14, marginBottom: 12 }}>
                   <div style={{ color: '#c9a84c', fontSize: 13, marginBottom: 10, fontFamily: "'Cinzel',serif" }}>Editando: {editingUser.username}</div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                     <input value={editUserForm.password} onChange={e => setEditUserForm(p => ({ ...p, password: e.target.value }))}
-                      placeholder="Nueva contraseña (dejar vacío para no cambiar)"
+                      placeholder="Nueva contraseña (vacío = no cambiar)"
                       type="password"
                       style={{ flex: 1, minWidth: 160, background: '#12121a', border: '1px solid #3a3a4a', color: '#e0ddd5', padding: '6px 10px', borderRadius: 5, fontSize: 13 }} />
                     <select value={editUserForm.role} onChange={e => setEditUserForm(p => ({ ...p, role: e.target.value }))}
@@ -465,26 +461,27 @@ const permanentDeleteUser = async (id, username) => {
                       </td>
                       <td style={{ padding: '6px 8px', color: u.active ? '#4caf7a' : '#e05252', fontSize: 11 }}>{u.active ? 'Activo' : 'Inactivo'}</td>
                       <td style={{ padding: '6px 8px' }}>
-                <div style={{ display: 'flex', gap: 4 }}>
-  <button onClick={() => { setEditingUser(u); setEditUserForm({ password: '', role: u.role }) }}
-    style={{ background: '#1a1a2a', border: '1px solid #3a3a4a', color: '#aaa', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>✏ Editar</button>
-  {u.active ? (
-    <button onClick={() => deleteUser(u.id, u.username)}
-      style={{ background: '#1a1a0a', border: '1px solid #c9a84c55', color: '#c9a84c', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>⏸ Desactivar</button>
-  ) : (
-    <button onClick={() => reactivateUser(u.id, u.username)}
-      style={{ background: '#0d3320', border: '1px solid #4caf7a55', color: '#4caf7a', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>✓ Reactivar</button>
-  )}
-  {u.role !== 'admin' && (
-    <button onClick={() => permanentDeleteUser(u.id, u.username)}
-      style={{ background: '#3a0d0d', border: '1px solid #c0392b55', color: '#e05252', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>🗑 Eliminar</button>
-  )}
-</div>
+                        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                          <button onClick={() => { setEditingUser(u); setEditUserForm({ password: '', role: u.role }) }}
+                            style={{ background: '#1a1a2a', border: '1px solid #3a3a4a', color: '#aaa', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>✏ Editar</button>
+                          {u.active ? (
+                            <button onClick={() => deactivateUser(u.id, u.username)}
+                              style={{ background: '#1a1a0a', border: '1px solid #c9a84c55', color: '#c9a84c', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>⏸ Desactivar</button>
+                          ) : (
+                            <button onClick={() => reactivateUser(u.id, u.username)}
+                              style={{ background: '#0d3320', border: '1px solid #4caf7a55', color: '#4caf7a', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>✓ Reactivar</button>
+                          )}
+                          {u.role !== 'admin' && (
+                            <button onClick={() => permanentDeleteUser(u.id, u.username)}
+                              style={{ background: '#3a0d0d', border: '1px solid #c0392b55', color: '#e05252', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>🗑 Eliminar</button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+
               <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
                 <input value={newUser.username} onChange={e => setNewUser(p => ({ ...p, username: e.target.value }))} placeholder="Nombre del personaje" style={{ flex: 1, minWidth: 120, background: '#1a1a24', border: '1px solid #3a3a4a', color: '#e0ddd5', padding: '6px 10px', borderRadius: 5, fontSize: 13 }} />
                 <input type="password" value={newUser.password} onChange={e => setNewUser(p => ({ ...p, password: e.target.value }))} placeholder="Contraseña" style={{ flex: 1, minWidth: 120, background: '#1a1a24', border: '1px solid #3a3a4a', color: '#e0ddd5', padding: '6px 10px', borderRadius: 5, fontSize: 13 }} />
@@ -492,11 +489,18 @@ const permanentDeleteUser = async (id, username) => {
                   <option value="member">member</option>
                   <option value="admin">admin</option>
                 </select>
-                <button onClick={async () => { if (!newUser.username || !newUser.password) return; try { await api('/admin/users', { method: 'POST', body: newUser }); setNewUser({ username: '', password: '', role: 'member' }); loadAdminData(); toast('✓ Personaje creado') } catch (e) { toast(e.message, true) } }} style={{ background: '#c9a84c22', border: '1px solid #c9a84c88', color: '#c9a84c', padding: '6px 14px', borderRadius: 5, cursor: 'pointer', fontSize: 12 }}>+ Crear</button>
+                <button onClick={async () => {
+                  if (!newUser.username || !newUser.password) return
+                  try {
+                    await api('/admin/users', { method: 'POST', body: newUser })
+                    setNewUser({ username: '', password: '', role: 'member' })
+                    loadAdminData()
+                    toast('✓ Personaje creado')
+                  } catch (e) { toast(e.message, true) }
+                }} style={{ background: '#c9a84c22', border: '1px solid #c9a84c88', color: '#c9a84c', padding: '6px 14px', borderRadius: 5, cursor: 'pointer', fontSize: 12 }}>+ Crear</button>
               </div>
             </div>
 
-            {/* Logs */}
             <div style={{ background: '#12121a', border: '1px solid #2a2a3a', borderRadius: 8, padding: 14 }}>
               <div style={{ fontFamily: "'Cinzel',serif", color: '#c9a84c', fontSize: 12, letterSpacing: 1, marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #2a2a3a' }}>LOG DE ACTIVIDAD</div>
               {adminLogs.slice(0, 30).map(l => {
@@ -512,6 +516,7 @@ const permanentDeleteUser = async (id, username) => {
                 )
               })}
             </div>
+
           </div>
         )}
       </div>
