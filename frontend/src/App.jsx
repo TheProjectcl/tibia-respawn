@@ -184,12 +184,29 @@ export default function App() {
   }
 
   // Eliminar usuario
-  const deleteUser = async (id, username) => {
-    try {
-      await api(`/admin/users/${id}`, { method: 'DELETE' })
-      loadAdminData()
-      toast(`🗑 ${username} desactivado`)
-    } catch (e) { toast(e.message, true) }
+const deleteUser = async (id, username) => {
+  try {
+    await api(`/admin/users/${id}`, { method: 'DELETE' })
+    loadAdminData()
+    toast(`⏸ ${username} desactivado`)
+  } catch (e) { toast(e.message, true) }
+}
+
+const reactivateUser = async (id, username) => {
+  try {
+    await api(`/admin/users/${id}/reactivate`, { method: 'PUT' })
+    loadAdminData()
+    toast(`✓ ${username} reactivado`)
+  } catch (e) { toast(e.message, true) }
+}
+
+const permanentDeleteUser = async (id, username) => {
+  try {
+    await api(`/admin/users/${id}?permanent=true`, { method: 'DELETE' })
+    loadAdminData()
+    toast(`🗑 ${username} eliminado permanentemente`)
+  } catch (e) { toast(e.message, true) }
+}
   }
 
   const myActiveRespawnId = respawns.find(r =>
@@ -448,14 +465,21 @@ export default function App() {
                       </td>
                       <td style={{ padding: '6px 8px', color: u.active ? '#4caf7a' : '#e05252', fontSize: 11 }}>{u.active ? 'Activo' : 'Inactivo'}</td>
                       <td style={{ padding: '6px 8px' }}>
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          <button onClick={() => { setEditingUser(u); setEditUserForm({ password: '', role: u.role }) }}
-                            style={{ background: '#1a1a2a', border: '1px solid #3a3a4a', color: '#aaa', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>✏ Editar</button>
-                          {u.role !== 'admin' && (
-                            <button onClick={() => deleteUser(u.id, u.username)}
-                              style={{ background: '#3a0d0d', border: '1px solid #c0392b55', color: '#e05252', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>🗑 Desactivar</button>
-                          )}
-                        </div>
+                <div style={{ display: 'flex', gap: 4 }}>
+  <button onClick={() => { setEditingUser(u); setEditUserForm({ password: '', role: u.role }) }}
+    style={{ background: '#1a1a2a', border: '1px solid #3a3a4a', color: '#aaa', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>✏ Editar</button>
+  {u.active ? (
+    <button onClick={() => deleteUser(u.id, u.username)}
+      style={{ background: '#1a1a0a', border: '1px solid #c9a84c55', color: '#c9a84c', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>⏸ Desactivar</button>
+  ) : (
+    <button onClick={() => reactivateUser(u.id, u.username)}
+      style={{ background: '#0d3320', border: '1px solid #4caf7a55', color: '#4caf7a', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>✓ Reactivar</button>
+  )}
+  {u.role !== 'admin' && (
+    <button onClick={() => permanentDeleteUser(u.id, u.username)}
+      style={{ background: '#3a0d0d', border: '1px solid #c0392b55', color: '#e05252', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 11 }}>🗑 Eliminar</button>
+  )}
+</div>
                       </td>
                     </tr>
                   ))}

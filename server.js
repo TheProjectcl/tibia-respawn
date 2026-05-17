@@ -277,7 +277,17 @@ app.post('/admin/users', auth, adminOnly, async (req, res) => {
 });
 
 app.delete('/admin/users/:id', auth, adminOnly, async (req, res) => {
-  await pool.query('UPDATE users SET active=false WHERE id=$1', [req.params.id]);
+  const { permanent } = req.query;
+  if (permanent === 'true') {
+    await pool.query('DELETE FROM users WHERE id=$1', [req.params.id]);
+  } else {
+    await pool.query('UPDATE users SET active=false WHERE id=$1', [req.params.id]);
+  }
+  res.json({ ok: true });
+});
+
+app.put('/admin/users/:id/reactivate', auth, adminOnly, async (req, res) => {
+  await pool.query('UPDATE users SET active=true WHERE id=$1', [req.params.id]);
   res.json({ ok: true });
 });
 
