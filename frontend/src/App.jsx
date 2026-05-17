@@ -336,8 +336,12 @@ export default function App() {
                                 <button onClick={() => setConfirm(p => ({ ...p, [r.id]: false }))} style={{ background: '#2a2a3a', border: '1px solid #3a3a4a', color: '#aaa', padding: '6px 10px', borderRadius: 5, cursor: 'pointer', fontSize: 12 }}>✕</button>
                               </>
                             }
-                            {!c.next_name && <button onClick={() => action(`/respawns/${r.id}/extend`, 'POST', {}, `⏱ Extendiste ${r.name} a 3h`)} style={{ background: '#c9a84c22', border: '1px solid #c9a84c88', color: '#c9a84c', padding: '6px 12px', borderRadius: 5, cursor: 'pointer', fontSize: 12 }}>Extender 3h</button>}
-                          </div>
+{!c.next_name && sec <= 300 && (
+  <button onClick={() => action(`/respawns/${r.id}/extend`, 'POST', {}, `⏱ Extendiste ${r.name} a 3h`)} style={{ background: '#c9a84c22', border: '1px solid #c9a84c88', color: '#c9a84c', padding: '6px 12px', borderRadius: 5, cursor: 'pointer', fontSize: 12 }}>Extender 3h</button>
+)}
+{!c.next_name && sec > 300 && (
+  <div style={{ fontSize: 11, color: '#555', marginTop: 4 }}>Extender disponible con menos de 5 min</div>
+)}                          </div>
                         )}
                         {isNext && (
                           <button onClick={() => action(`/respawns/${r.id}/leave-queue`, 'POST', {}, `↩ Saliste de la cola`)} style={{ background: '#c0392b22', border: '1px solid #c0392b88', color: '#e05252', padding: '6px 12px', borderRadius: 5, cursor: 'pointer', fontSize: 12 }}>Salir de la cola</button>
